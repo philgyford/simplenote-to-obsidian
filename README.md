@@ -33,8 +33,9 @@ So, if you used tags, this script will help.
 
 ## What the script does not do
 
-* Handles any links between notes. I didn't use this feature of Simplenote, so didn't see if anything was needed to make them work in Obsidian.
-* Converts any notes in Simplenote's trash.
+* Handle any links between notes. I didn't use this feature of Simplenote, so didn't see if anything was needed to make them work in Obsidian.
+* Convert any notes in Simplenote's trash.
+* Set the creation-time of notes if you're not on macOS with Xcode installed.
 
 
 ## How the script does it
