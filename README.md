@@ -1,6 +1,6 @@
 # simplenote-to-obsidian
 
-This is a Python 3 command line script to convert an [export][export]() of notes from [Simplenote][sn] into a directory of Markdown files suitable for use in [Obsidian][ob].
+This is a Python 3 command line script to convert an [export][export] of notes from [Simplenote][sn] into a directory of Markdown files suitable for use in [Obsidian][ob].
 
 [export]: https://simplenote.com/help/#export
 [sn]: https://simplenote.com
