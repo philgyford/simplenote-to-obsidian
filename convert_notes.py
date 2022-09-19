@@ -1,27 +1,40 @@
 #!/usr/bin/env python3
 
-import glob
+import json
 import os
 import re
 import sys
+from datetime import datetime
+from subprocess import call
 
 
-# Where we'll save the converted notes.
+# Path to the JSON file we'll read in:
+INPUT_FILE = "./notes.json"
+
+# Path to the directory where we'll save the converted notes:
 OUTPUT_DIRECTORY = "./notes_converted/"
+
+# Should the creation time of the created files be set to the creation
+# time of the original notes?
+# Will fail if you're not on a Mac, or don't have Xcode installed -
+# in which case set this to False.
+KEEP_ORIGINAL_CREATION_TIME = True
+
+# Should the last-modified time of the created files be set to the
+# last-modified time of the original notes?
+KEEP_ORIGINAL_MODIFIED_TIME = True
 
 
 def main():
 
     ###################################################################
-    # 1. Set up.
+    # 1. Set-up and checking.
 
-    path = input("\nEnter path to folder of .txt files (default is './notes'):")
+    if not os.path.exists(INPUT_FILE):
+        sys.exit(f"There is no file at {INPUT_FILE}")
 
-    if path == "":
-        path = "./notes"
-
-    if not os.path.isdir(path):
-        sys.exit(f"'{path}' is not a valid directory path")
+    if not os.path.isfile(INPUT_FILE):
+        sys.exit(f"{INPUT_FILE} is not a file")
 
     tag_position = input("\nWhere should tags be put? Either 'start' or 'end' (default is 'end'):")
 
@@ -37,66 +50,79 @@ def main():
     ###################################################################
     # 2. Loop through all the notes and create new ones
 
-    files_read = 0
-    files_saved = 0
+    # Empty line before next output
+    print("")
 
-    # Open each .txt file in the directory in turn:
-    for filename in glob.glob(os.path.join(path, '*.txt')):
-        with open(filename) as file:
+    note_count = 0
 
-            # Uncomment this to see each filename:
-            # print(filename)
+    with open(INPUT_FILE) as json_file:
+        # Load the JSON data into a dict:
+        try:
+            data = json.load(json_file)
+        except json.decoder.JSONDecodeError as e:
+            sys.exit(f"Could not parse {INPUT_FILE}. Are you sure it's a JSON file?")
 
-            # Get all the lines in the file:
-            lines = file.read().splitlines()
+        if not isinstance(data, dict):
+            sys.exit(f"The data from {INPUT_FILE} is not a dict, so it can't be used.")
 
-            # What we'll write to the new file by default - same as the old file
-            new_lines = lines
+        if "activeNotes" not in data:
+            sys.exit(f"There is no 'activeNotes' element in the data found in {INPUT_FILE}")
 
-            # Is the file long enough to have tags?
-            if len(lines) >= 2:
-                # See what the penultimate lines of the file is:
-                if lines[-2] == "Tags:":
-                    # There are probably some tags!
+        for note in data["activeNotes"]:
+            # Get all the note's lines into a list:
+            lines = note["content"].splitlines()
 
-                    last_line = lines[-1]
+            if len(lines) == 0:
+                # We'll skip any empty notes
+                print(f"Skipping empty note with ID of {note['id']}")
+            else:
+                if "tags" in note:
+                    # Deal with the tags
 
-                    # Split the line into a list of individual tags:
-                    tags = [tag.strip() for tag in last_line.split(", ")]
+                    tags = note["tags"]
 
-                    if len(tags) > 0:
-                        # There are tags!
+                    # Replace any non-word characters in each tag with a hyphen:
+                    tags = [re.sub(r'\W+', '-', tag) for tag in tags]
 
-                        # Replace any non-word characters in each tag with a hyphen:
-                        tags = [re.sub(r'\W+', '-', tag) for tag in tags]
+                    # Prefix tags with # so obsidian recognises them as tags:
+                    tags = ["#"+tag for tag in tags]
 
-                        # Prefix tags with # so obsidian recognises them as tags:
-                        tags = ["#"+tag for tag in tags]
+                    # Create the tag text we'll insert into the new note:
+                    tag_text = " ".join(tags)
 
-                        # Remove the tags lines from the end of the note:
-                        new_lines = lines[:-2]
+                    if tag_position == "start":
+                        lines.insert(1, "")
+                        lines.insert(2, tag_text)
+                    else:
+                        lines.append("")
+                        lines.append(tag_text)
 
-                        # The new line of tags we'll add to the note:
-                        tag_line = " ".join(tags)
+                # Create the new filename/path based on the first line of the note:
+                filename = lines[0] + ".md"
+                # Need to remove any forward slashes or colons:
+                filename = filename.replace("/", "").replace(":", "")
+                filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
-                        if tag_position == "start":
-                            new_lines.insert(1, "")
-                            new_lines.insert(2, tag_line)
-                        else:
-                            new_lines.append(tag_line)
+                with open(filepath, "w") as outfile:
+                    outfile.write("\n".join(lines))
 
-            # Write the file to the new directory as a .md file
+                if KEEP_ORIGINAL_CREATION_TIME is True:
+                    creation_time = datetime.strptime(
+                        note["creationDate"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ).strftime("%m/%d/%Y %H:%M:%S %p")
+                    call(["SetFile", "-d", creation_time, filepath])
 
-            new_filename = os.path.splitext(os.path.basename(filename))[0] + ".md"
+                if KEEP_ORIGINAL_MODIFIED_TIME is True:
+                    # Set the file access and modified times:
+                    modified_time = datetime.strptime(
+                        note["lastModified"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+                    modified_time = modified_time.timestamp()
+                    os.utime(filepath, (modified_time, modified_time))
 
-            with open(os.path.join(OUTPUT_DIRECTORY, new_filename), "w") as outfile:
-                outfile.write("\n".join(new_lines))
-                files_saved += 1
+                note_count += 1
 
-        files_read += 1
-
-    print(f"\n{files_read} .txt file(s) were found in {path}")
-    print(f"{files_saved} .md  file(s) were saved to {OUTPUT_DIRECTORY}")
+    print(f"\n{note_count} .md file(s) were created in {OUTPUT_DIRECTORY}")
 
 
 if __name__ == "__main__":

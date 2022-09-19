@@ -1,64 +1,99 @@
 # simplenote-to-obsidian
 
-This is a Python 3 command line script to convert a directory of text files [exported](https://simplenote.com/help/#export) from [Simplenote](https://simplenote.com) into a directory of Markdown files suitable for use in [Obsidian](https://obsidian.md).
+This is a Python 3 command line script to convert an [export][export]() of notes from [Simplenote][sn] into a directory of Markdown files suitable for use in [Obsidian][ob].
 
+[export]: https://simplenote.com/help/#export
+[sn]: https://simplenote.com
+[ob]: https://obsidian.md
 
-## What the script does
+## Why you might or might not need this script
 
-* Copies all `.txt` files from one directory into another directory
-* Replaces the `.txt` extension with `.md`
-* If s Simplenote note contains tags (which Simlenote adds when exporting), these are replaced with text that Obsidian interprets as tags
+Your export of Simplenote `.txt` files can be imported into Obsidian by [changing the file extensions][ext] to `.md`.
 
+[ext]: https://osxdaily.com/2016/11/08/batch-change-file-extensions-mac/
 
-## What the script does not do
-
-* Handle any links between notes. I didn't use this feature of Simplenote, so didn't see if anything was needed to make them work in Obsidian.
-* Convert any notes in the `trash` directory of the Simplenote export directory.
-* Do anything with the `source/notes.json` file in the Simplenote export directory.
-
-
-## How the script does it
-
-### Source and destination directories
-
-The script looks for a directory called `notes` in the same directory as the script itself. When you run the script you'll be given the opportunity to choose a different path to a directory of notes.
-
-The script will create a directory called `notes_exported` in the same directory as the script itself. Converted notes will be put in there. If you want to change this, edit the value of `OUTPUT_DIRECTORY` near the start of the script.
-
-### Tags
-
-If a Simplenote note has tags, the exported file will have something like this added as the final two lines:
+But if you used tags in Simplenote you will lose them in Obsidian, because in the exported Simplenote files they appear like this at the end of each one:
 
     Tags:
       Recipes, Todo
 
-This script will replace those two lines with this final line:
+Obsidian won't recognise these as tags – they each need to be prefixed with `#`.
 
-	#Recipes #Todo
+So, if you used tags, this script will help.
 
-(Any words that begin with `#` will be interpreted as tags by Obsidian.)
+
+## What the script does
+
+* Reads the original note data from the exported JSON file
+* Creates a new directory of `.md` text files, one per note.
+* If s Simplenote note had tags, the new file will contain those tags prefixed with `#`, which Obsidian interprets as tags
+* Sets the last-modified time of each new file to the last-modified time of the Simplenote note.
+* Sets the creation time of each new file to the creation time of the Simplenote note (only works on macOS with Xcode installed; see below).
+
+
+## What the script does not do
+
+* Handles any links between notes. I didn't use this feature of Simplenote, so didn't see if anything was needed to make them work in Obsidian.
+* Converts any notes in Simplenote's trash.
+
+
+## How the script does it
+
+### Source file and destination directory
+
+The script looks for a `notes.json` file in the same directory as the script itself.
+
+The script will create a directory called `notes_converted` in the same directory as the script itself. Text files will be created in there. If you want to change this, edit the value of `OUTPUT_DIRECTORY` near the start of the script.
+
+### Tags
+
+If a Simplenote note has tags, these will be indicated in the JSON file like this:
+
+    "tags": [
+      "Recipes",
+      "Todo"
+    ]
+
+This script will addd a line to the end of the created file like this:
+
+    #Recipes #Todo
+
+(Any words that begin with `#` are interpreted as tags by Obsidian.)
 
 When you run the the script you'll be given the opportunity to enter `end` (the default, above) or `start`, for where the tags should be written.
 
 If you choose `start`, tags will be inserted after the note's title instead. For example, if the above note begins like this:
 
-	Carrot cake
+    Carrot cake
 
-	* 100g light muscovado sugar
-	* 100ml sunflower oil
-	...
+    * 100g light muscovado sugar
+    * 100ml sunflower oil
+    ...
 
 Then the converted note will begin like this:
 
-	Carrot cake
+    Carrot cake
 
-	#Recipes #Todo
+    #Recipes #Todo
 
-	* 100g light muscovado sugar
-	* 100ml sunflower oil
-	...
+    * 100g light muscovado sugar
+    * 100ml sunflower oil
+    ...
 
-Any non-word characters (like space, `:`, `.`, etc) that are in tags in the Simplenote files will be replaced with a hyphen (`-`) so that Obsidian recognises it as a single tag.
+Any non-word characters (like space, `:`, `.`, etc) that are in a Simplenote tag will be replaced with a hyphen (`-`) so that Obsidian recognises it as a single tag.
+
+### Creation times
+
+By default the script will set the creation times of each created file to the original note's creation time.
+
+BUT this only works on macOS with Xcode installed. If this is not the case for you, set `KEEP_ORIGINAL_CREATION_TIME` to `False` at the top of the script, or you'll see a lot of errors.
+
+### Last-modified times
+
+By default the script will set the last-modified time of each created file to the original note's last-modified time.
+
+If you don't want this, change `KEEP_ORIGINAL_MODIFIED_TIME` near the start of the script to `False`.
+
 
 ## How to run the script
 
@@ -68,13 +103,18 @@ Any non-word characters (like space, `:`, `.`, etc) that are in tags in the Simp
 
         $ chmod +x convert_notes.py
 
-3. Run it:
+3. If you're not on macOS with Xcode installed, set `KEEP_ORIGINAL_CREATION_TIME` near the top of the script to `False` and save the file.
+
+4. In the directory of notes you exported from Simplenote, find the `source/` directory, and the `notes.json` file within that. Copy or move that `notes.json` file to the same directory as the script.
+
+5. Run the script:
 
         $ ./convert_notes.py
 
-If you run the script multiple times then the content of the `notes_exported` directory isn't erased first – any existing notes will be overwritten with new ones, and new notes will be created.
+If you run the script multiple times then the content of the `notes_converted` directory isn't erased first – any existing notes will be overwritten with new ones, and new notes will be created.
 
 Once complete, copy or move the exported notes into the directory that's your Obsidian vault, then they should appear in Obsidian.
+
 
 ## Contact
 
