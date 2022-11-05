@@ -26,6 +26,7 @@ So, if you used tags, this script will help.
 
 * Reads the original note data from the exported JSON file
 * Creates a new directory of `.md` text files, one per note.
+* The first line of the note is used for the filename. If more than one note has the same first line, subsequent notes have a number added to the filename to make them unique.
 * If s Simplenote note had tags, the new file will contain those tags prefixed with `#`, which Obsidian interprets as tags
 * Sets the last-modified time of each new file to the last-modified time of the Simplenote note.
 * Sets the creation time of each new file to the creation time of the Simplenote note (only works on macOS with Xcode installed; see below).

@@ -53,7 +53,9 @@ def main():
     # Empty line before next output
     print("")
 
-    note_count = 0
+    # The keys will be filenames, the values will be an integer -
+    # the number of times that filename was used.
+    filenames = {}
 
     with open(INPUT_FILE) as json_file:
         # Load the JSON data into a dict:
@@ -97,13 +99,28 @@ def main():
                         lines.append("")
                         lines.append(tag_text)
 
+
                 # Create the new filename/path based on the first line of the note:
                 filename = lines[0] + ".md"
+
+                # Keep track of this filename and maybe if we've already used it:
+                if filename in filenames:
+                    filenames[filename] += 1
+                else:
+                    filenames[filename] = 1
+
                 # Need to remove any forward slashes or colons:
                 filename = filename.replace("/", "").replace(":", "")
                 filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
-                with open(filepath, "w") as outfile:
+                if os.path.exists(filepath) is True:
+                    # Don't want to overwrite it!
+                    # So, remove .md, and add the count of how many times this filename
+                    # has been used to the end, to make it unique.
+                    filename = f"{filename[:-3]} {filenames[filename]}.md"
+                    filepath = os.path.join(OUTPUT_DIRECTORY, filename)
+
+                with open(filepath, "x") as outfile:
                     outfile.write("\n".join(lines))
 
                 if KEEP_ORIGINAL_CREATION_TIME is True:
@@ -120,9 +137,8 @@ def main():
                     modified_time = modified_time.timestamp()
                     os.utime(filepath, (modified_time, modified_time))
 
-                note_count += 1
 
-    print(f"\n{note_count} .md file(s) were created in {OUTPUT_DIRECTORY}")
+    print(f"\n{sum(filenames.values())} .md file(s) were created in {OUTPUT_DIRECTORY}")
 
 
 if __name__ == "__main__":
