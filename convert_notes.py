@@ -101,9 +101,15 @@ def main():
 
 
                 # Create the new filename/path based on the first line of the note:
-                filename = lines[0] + ".md"
+                # But trim it to 248 characters so we can keep the entire thing -
+                # with the possible extra digit(s) added below - under 255 characters.
+                filename_start = lines[0]
+                if len(filename_start) > 248:
+                    filename = filename_start[0:248] + ".md"
+                else:
+                    filename = filename_start + ".md"
 
-                # Keep track of this filename and maybe if we've already used it:
+                # Keep track of this filename and how many times it's been used:
                 if filename in filenames:
                     filenames[filename] += 1
                 else:
