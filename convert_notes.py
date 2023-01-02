@@ -99,7 +99,6 @@ def main():
                         lines.append("")
                         lines.append(tag_text)
 
-
                 # Create the new filename/path based on the first line of the note:
                 # But trim it to 248 characters so we can keep the entire thing -
                 # with the possible extra digit(s) added below - under 255 characters.
@@ -119,7 +118,7 @@ def main():
                 filename = filename.replace("/", "").replace(":", "")
                 filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
-                if os.path.exists(filepath) is True:
+                if os.path.exists(filepath):
                     # Don't want to overwrite it!
                     # So, remove .md, and add the count of how many times this filename
                     # has been used to the end, to make it unique.
@@ -129,20 +128,19 @@ def main():
                 with open(filepath, "x") as outfile:
                     outfile.write("\n".join(lines))
 
-                if KEEP_ORIGINAL_CREATION_TIME is True:
+                if KEEP_ORIGINAL_CREATION_TIME:
                     creation_time = datetime.strptime(
                         note["creationDate"], "%Y-%m-%dT%H:%M:%S.%fZ"
                     ).strftime("%m/%d/%Y %H:%M:%S %p")
                     call(["SetFile", "-d", creation_time, filepath])
 
-                if KEEP_ORIGINAL_MODIFIED_TIME is True:
+                if KEEP_ORIGINAL_MODIFIED_TIME:
                     # Set the file access and modified times:
                     modified_time = datetime.strptime(
                         note["lastModified"], "%Y-%m-%dT%H:%M:%S.%fZ"
                     )
                     modified_time = modified_time.timestamp()
                     os.utime(filepath, (modified_time, modified_time))
-
 
     print(f"\n{sum(filenames.values())} .md file(s) were created in {OUTPUT_DIRECTORY}")
 
