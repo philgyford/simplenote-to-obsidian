@@ -125,7 +125,8 @@ def main():
                     filename = f"{filename[:-3]} {filenames[filename]}.md"
                     filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
-                with open(filepath, "x") as outfile:
+                print(f"Writing {note['id']} to '{filepath}'")
+                with open(filepath, "w") as outfile:
                     outfile.write("\n".join(lines))
 
                 if KEEP_ORIGINAL_CREATION_TIME:
