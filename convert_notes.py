@@ -108,15 +108,15 @@ def main():
                 else:
                     filename = filename_start + ".md"
 
+                # Need to remove any forward slashes or colons:
+                filename = filename.replace("/", "").replace(":", "")
+                filepath = os.path.join(OUTPUT_DIRECTORY, filename)
+
                 # Keep track of this filename and how many times it's been used:
                 if filename in filenames:
                     filenames[filename] += 1
                 else:
                     filenames[filename] = 1
-
-                # Need to remove any forward slashes or colons:
-                filename = filename.replace("/", "").replace(":", "")
-                filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
                 if os.path.exists(filepath):
                     # Don't want to overwrite it!
