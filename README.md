@@ -117,6 +117,9 @@ If you run the script multiple times then the content of the `notes_converted` d
 
 Once complete, copy or move the exported notes into the directory that's your Obsidian vault, then they should appear in Obsidian.
 
+## Thanks
+
+* @amrox for [PR4](https://github.com/philgyford/simplenote-to-obsidian/pull/4)
 
 ## Contact
 
