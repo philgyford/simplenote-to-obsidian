@@ -8,6 +8,7 @@ from datetime import datetime
 from subprocess import call
 
 
+
 # Path to the JSON file we'll read in:
 INPUT_FILE = "./notes.json"
 
@@ -143,7 +144,9 @@ def main():
                     modified_time = modified_time.timestamp()
                     os.utime(filepath, (modified_time, modified_time))
 
-    print(f"\n{sum(filenames.values())} .md file(s) were created in {OUTPUT_DIRECTORY}")
+    num_files = sum(filenames.values())
+    files_were = "file was" if num_files == 1 else "files were"
+    print(f"\n{num_files} .md {files_were} created in {OUTPUT_DIRECTORY}")
 
 
 if __name__ == "__main__":
