@@ -58,7 +58,7 @@ def main():
     # the number of times that filename was used.
     filenames = {}
 
-    with open(INPUT_FILE) as json_file:
+    with open(INPUT_FILE, encoding="UTF-8") as json_file:
         # Load the JSON data into a dict:
         try:
             data = json.load(json_file)
@@ -126,8 +126,9 @@ def main():
                     filename = f"{filename[:-3]} {filenames[filename]}.md"
                     filepath = os.path.join(OUTPUT_DIRECTORY, filename)
 
-                print(f"Writing {note['id']} to '{filepath}'")
-                with open(filepath, "w") as outfile:
+                #print(f"Writing {note['id']} to '{filepath}'")
+
+                with open(filepath, "w", encoding="UTF-8") as outfile:
                     outfile.write("\n".join(lines))
 
                 if KEEP_ORIGINAL_CREATION_TIME:
